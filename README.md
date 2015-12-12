@@ -42,4 +42,4 @@ $ flask/bin/pip freeze > requirements.txt
 License
 ----
 
-Pending
+No License
