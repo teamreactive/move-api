@@ -39,7 +39,7 @@ current_user = LocalProxy(lambda: _request_ctx_stack.top.current_user)
 # Database initialization
 engine = create_engine('%s://%s:%s@%s/%s' % (db_provider, db_user, db_password, db_address, db_name), echo=False)
 Base = declarative_base()
-Session = sessionmaker(bind=engine)
+Session = sessionmaker(bind=engine, autocommit=False)
 session = Session()
 
 # ###############################################
@@ -215,26 +215,32 @@ session.commit()
 
 @app.errorhandler(400)
 def bad_request(error):
+	session.rollback()
 	return make_response(jsonify({ 'error': 'bad request' }), 400)
 
 @app.errorhandler(401)
 def unauthorized(error):
+	session.rollback()
 	return make_response(jsonify({ 'error': 'unauthorized' }), 401)
 
 @app.errorhandler(404)
 def not_found(error):
+	session.rollback()
 	return make_response(jsonify({ 'error': 'not found' }), 404)
 
 @app.errorhandler(405)
 def bad_method(error):
+	session.rollback()
 	return make_response(jsonify({ 'error': 'method not allowed' }), 405)
 
 @app.errorhandler(409)
 def conflict(error):
+	session.rollback()
 	return make_response(jsonify({ 'error': 'conflict resource' }), 409)
 
 @app.errorhandler(500)
 def unknown(error):
+	session.rollback()
 	return make_response(jsonify({ 'error': 'unknown error, try again later' }), 500)
 
 @app.teardown_request
@@ -358,16 +364,13 @@ def create_order():
 		6. Returns the just created order.
 	"""
 	# Step 1
-	print 'STEP_1'
 	user = _request_ctx_stack.top.current_user
 	if user['app_metadata']['user_role'] != 'user':
 		abort(401)
 	# Step 2
-	print 'STEP_2'
 	if not request.json or not valid_create_order(request.json):
 		abort(400)
 	# Step 3
-	print 'STEP_3'
 	user_id = user['sub'].split('|')[1]
 	orders = session.query(Order).filter(and_(Order.user_id == user_id, Order.status != ORDER_FINISHED)).all()
 	accepted_orders = [order for order in orders if order.status == ORDER_ACCEPTED]
@@ -377,7 +380,6 @@ def create_order():
 	if len(made_order) > 0:
 		abort(400)
 	# Step 4
-	print 'STEP_4'
 	order = Order(
 		place=request.json['place'],
 		status=ORDER_MADE,
@@ -389,7 +391,6 @@ def create_order():
 	session.add(order)
 	session.flush()
 	# Step 5
-	print 'STEP_5'
 	items = []
 	for val in request.json['items']:
 		item = Item(
@@ -401,7 +402,6 @@ def create_order():
 	session.add_all(items)
 	session.commit()
 	# Step 6
-	print 'STEP_6'
 	return jsonify(order.serialize), 201
 
 @app.route('/api/v1.0/order/<int:order_id>', methods=['PUT'])
@@ -645,28 +645,22 @@ def valid_create_order(data):
 		}
 	"""
 	# Verify place
-	print 'place'
 	if 'place' not in data or type(data['place']) is not unicode or not data['place']:
 		return False
 	# Verify geoplace outside
-	print 'geoplace'
 	if 'geoplace' not in data or type(data['geoplace']) is not dict:
 		return False
 	# Verify geoplace inside
-	print 'lat'
 	if 'lat' not in data['geoplace'] or type(data['geoplace']['lat']) is not float:
 		return False
-	print 'lon'
 	if 'lon' not in data['geoplace'] or type(data['geoplace']['lon']) is not float:
 		return False
 	# Verify items outside
-	print 'items'
 	if 'items' not in data or type(data['items']) is not list:
 		return False
 	if len(data['items']) < 1:
 		return False
 	# Verify items inside
-	print 'inside'
 	for item in data['items']:
 		if 'amount' not in item or type(item['amount']) is not int:
 			return False

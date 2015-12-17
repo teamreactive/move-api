@@ -158,7 +158,7 @@ data = {
 	'place': 'Calle 165b #15b 06 Prados de San Martin 1-1502',
 	'geoplace': {
 		'lat': 10.4392,
-		'lon': 10.4392
+		'lon': 10.4393
 	},
 	'items': [
 		{
