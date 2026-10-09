@@ -1,77 +1,27 @@
-# Move API
+# move-api
 
-Move API is the server-side of Move app, a simple REST API written in Flask.
+[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
 
-### Version
-1.0.0
+:motor_scooter: The back-end of Move, a service that shows you the nearest places selling what you need and delivers your order wherever you are. A REST API written in Flask.
 
-### Installation
+## Usage
+You need [PostgreSQL](https://www.postgresql.org/) and [virtualenv](https://virtualenv.pypa.io/) installed on your machine.
 
-You need to install **postgresql** database:
-```sh
-$ brew install postgresql
+Create a database and a user for it:
+```
+initdb /usr/local/var/postgres
+createuser -P -s -e <user>
+createdb mydb
 ```
 
-Initialize the just installed database:
-```sh
-$ initdb /usr/local/var/postgres
+Create a virtual environment and install the dependencies:
+```
+virtualenv flask
+flask/bin/pip install -r requirements.txt
 ```
 
-Create a new user for the database system with the given credentials:
-```sh
-$ createuser -P -s -e <user>
+Put the database credentials in a `.env` file in the root folder, then start the database and the API:
 ```
-
-Create a new database called *mydb*:
-```sh
-$ createdb mydb
+postgres -D /usr/local/var/postgres
+./app.py
 ```
-
-You need to have **virtualenv** installed globally in your machine:
-```sh
-$ [sudo] pip install virtualenv
-```
-
-Inside the root folder, create a new virtual environment called *flask*:
-```sh
-$ virtualenv flask
-```
-
-Install all the dependencies included in the file *requirements.txt*:
-```sh
-$ flask/bin/pip install requirements.txt
-```
-
-Give execution permissions to the **app.py** script:
-```sh
-$ chmod a+x app.py
-```
-
-Inside the root folder, make a new file called *.env* that contains all credentials:
-```sh
-$ touch .env
-```
-
-### Running
-
-Run the postgres server:
-```sh
-$ postgres -D /usr/local/var/postgres
-```
-
-Run the **app.py** script:
-```sh
-$ ./app.py
-```
-
-### Development
-
-Every time you install new dependencies, overwrite the *requirements.txt* file:
-```sh
-$ flask/bin/pip freeze > requirements.txt
-```
-
-License
-----
-
-No License
